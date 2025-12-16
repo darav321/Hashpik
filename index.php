@@ -1,4 +1,25 @@
-<?php session_start(); ?>
+<?php 
+    session_start(); 
+    if (isset($_POST["forgot_email_submit"])) {
+        require_once "database.php";
+        $email = $_POST["forgot_email"];
+
+        $sql = "SELECT * FROM users WHERE email='$email'";
+        $result = mysqli_query($conn, $sql);
+        $user = mysqli_fetch_assoc($result);
+
+        if ($user) {
+            require 'sendMail.php';
+            $subject = "Reset Pssword Link - Hashpik";
+            $link = "https://localhost/Hashpik/reset_password.php?email=" . urlencode($email);
+            $message = "Click on the link below to reset your password" . "\n" . $link;
+            sendEmail($email, $subject, $message);
+
+        } else {
+            echo "<div class='text-red-600 font-bold'>Email not found</div>";
+        }
+    }
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -93,7 +114,9 @@
             $subject = "Reset Pssword Link - Hashpik";
             $message = "Click on the link below to reset your password";
             sendEmail($email, $subject, $message);
-            exit;
+
+            header("Location: reset_password.php?email=" . urlencode($email));
+            exit();
         } else {
             echo "<div class='text-red-600 font-bold'>Email not found</div>";
         }
@@ -134,11 +157,11 @@
         <h1 class="text-3xl text-slate-800 font-bold">hash<span class="text-orange-500">pik</span></h1>
         <ul class="flex gap-8 items-center">
             <?php
-            if (isset($_SESSION['user'])) {
-                echo '<li><a href="logout.php" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Logout</a></li>';
-            } else {
-                echo '<li><p id="login-btn" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Login</p></li>';
-            }
+                if (isset($_SESSION['user'])) {
+                    echo '<li><a href="logout.php" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Logout</a></li>';
+                } else {
+                    echo '<li><p id="login-btn" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Login</p></li>';
+                }
             ?>
         </ul>
     </header>
@@ -190,7 +213,7 @@
 
     <div id="forms" class="hidden fixed top-0 left-0 w-full h-full z-10 bg-black bg-opacity-40 flex justify-center items-center">
 
-        <form action="index.php" method="POST" autocomplete="off" id="registration-form" class=" hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
+        <form autocomplete="off" action="index.php" method="POST" autocomplete="off" id="registration-form" class=" hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
             <div class="w-full flex flex-col gap-1">
                 <h1 class="text-3xl text-slate-800 font-bold">Sign up</h1>
                 <p class="font-medium text-sm text-slate-500">All fields are required</p>
@@ -205,7 +228,7 @@
             </div>
             <div class="flex flex-col gap-2 w-full">
                 <label for="password">Password:</label>
-                <input type="password" name="password" autocomplete="off" class="w-full border-2 border-slate-400 focus:border-black px-4 py-2 rounded-lg outline-none">
+                <input type="password" name="password" autocomplete="off" autocomplete="new-password" class="w-full border-2 border-slate-400 focus:border-black px-4 py-2 rounded-lg outline-none">
             </div>
             <div class="flex flex-col gap-2 w-full">
                 <label for="password">Confirm Password:</label>
@@ -215,7 +238,7 @@
             <p class="w-full text-left">Already have an account <a id="goto-login" class="text-[#CC774A]">Login</a></p>
         </form>
 
-        <form id="login-form" method="post" action="login_handler.php" class="hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
+        <form autocomplete="off" id="login-form" method="post" action="login_handler.php" class="hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
 
             <div class="w-full flex flex-col gap-1">
                 <h1 class="text-3xl text-slate-800 font-bold">Sign in</h1>
@@ -229,7 +252,7 @@
 
             <div class="flex flex-col gap-2 w-full">
                 <label for="password">Password:</label>
-                <input type="password" name="password" class="w-full border-2 border-slate-400 focus:border-black px-4 py-2 rounded-lg outline-none">
+                <input type="password" name="password" autocomplete="new-password" class="w-full border-2 border-slate-400 focus:border-black px-4 py-2 rounded-lg outline-none">
 
                 <p id="forgotBtn" class="text-blue-500 hover:text-blue-600 underline cursor-pointer">Forgot Password?</p>
             </div>
@@ -241,19 +264,18 @@
             </p>
         </form>
 
-        <div id="forgotForm" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 flex justify-center items-center">
-            <form method="post" class="bg-white px-10 py-8 rounded-lg shadow-lg w-lg flex flex-col gap-4">
+    </div>
+    <div id="forgotForm" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 flex justify-center items-center z-10">
+            <form method="post" action="index.php" class="bg-white px-10 py-8 rounded-lg shadow-lg w-lg flex flex-col gap-4">
                 <div>
                     <h2 class="text-xl font-bold">Reset Password</h2>
                     <p class="font-medium text-slate-500 text-sm">A verification mail will be sent to this Email</p>
                 </div>
                 <input type="email" name="forgot_email" placeholder="Enter your email" class="border-2 px-3 py-2 rounded">
-                <button name="forgot_email_submit" class="bg-[#CC774A] text-white py-2 rounded">Send Reset Link</button>
+                <button type="submit" name="forgot_email_submit" class="bg-[#CC774A] text-white py-2 rounded">Send Reset Link</button>
                 <p id="closeBtn" class="cursor-pointer text-red-500 underline text-center">Cancel</p>
             </form>
         </div>
-
-    </div>
 
     <form method="GET" class="flex gap-4 px-10 mt-6">
         <input type="text" name="search" value="<?php echo $_GET['search'] ?? '' ?>"
@@ -281,8 +303,7 @@
 
         $query = urlencode($_GET['search']);
         $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-        $filter = $_GET['filter'] ?? ""; // IMPORTANT FIX
-
+        $filter = $_GET['filter'] ?? ""; 
 
         $access_key_unsplash = "CVIUtNuMDIbvCHnYTobrqSAcsEq2muf9-LvNpFH9wjE";
         $url_unsplash = "https://api.unsplash.com/search/photos?query=$query&client_id=$access_key_unsplash&page=$page&per_page=20";
@@ -303,9 +324,6 @@
                 ];
             }
         }
-
-
-
         $access_key_pixabay = "53563226-9f711b527fabe9b621944ae54";
         $url_pixabay = "https://pixabay.com/api/?key=$access_key_pixabay&q=$query&image_type=photo&page=$page&per_page=20";
 
@@ -326,7 +344,6 @@
                 ];
             }
         }
-
         if ($filter === "az") {
             usort($allImages, fn($a, $b) => strcmp($a["title"], $b["title"]));
         } elseif ($filter === "za") {
@@ -387,16 +404,13 @@
 
         echo '</div>';
     }
-
     ?>
-
 
     <div id="imgModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-[999]">
         <div class="relative bg-white p-4 rounded-lg max-w-7xl w-full h-[90vh] flex gap-4">
             <div id="imgWrapper" class=" w-full h-full overflow-auto flex justify-center items-center">
                 <img id="modalImg" src="" class="max-w-full max-h-full">
             </div>
-
 
             <div class="flex flex-col gap-4 items-end top-0">
                 <a id="downloadBtn" download class="px-4 py-2 bg-[#CC774A] text-white rounded">Download</a>
@@ -503,6 +517,16 @@
         function autoSubmitSearch() {
             document.getElementById("forceSubmit").value = "1";
             document.getElementById("searchForm").submit();
+        }
+
+        document.getElementById("forgotBtn").onclick = () => {
+            document.getElementById("forgotForm").classList.remove("hidden");
+            document.getElementById("login-form").classList.add("hidden");
+        }
+
+        document.getElementById("closeBtn").onclick = () => {
+            document.getElementById("forgotForm").classList.add("hidden");
+            document.getElementById("login-form").classList.remove("hidden");
         }
     </script>';
 
