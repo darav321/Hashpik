@@ -313,7 +313,7 @@ if (isset($_POST["forgot_email_submit"])) {
 
 
 
-    <div class="w-full flex justify-center gap-6 my-12">
+    <div id="pagination" class="w-full flex justify-center gap-6 my-12">
         <button onclick="prevPage()" class="px-4 py-2 bg-gray-200 rounded">Prev</button>
         <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 rounded">Next</button>
     </div>
@@ -376,23 +376,25 @@ if (isset($_POST["forgot_email_submit"])) {
         const downloadBtn = document.getElementById("downloadBtn");
         let scale = 1;
 
-        document.querySelectorAll(".previewImg").forEach(img => {
-            img.addEventListener("click", () => {
-                modal.classList.remove("hidden");
-                const hdImage = img.getAttribute("data-full");
-                modalImg.src = hdImage;
-                downloadBtn.href = hdImage;
-                scale = 1;
-                modalImg.style.transform = "scale(1)";
-                modalImg.style.maxWidth = "100%";
-                modalImg.style.maxHeight = "100%";
-            });
+        document.addEventListener("click", function (e) {
+            const img = e.target.closest(".previewImg");
+            if (!img) return;
+
+            modal.classList.remove("hidden");
+
+            const hdImage = img.getAttribute("data-full");
+            modalImg.src = hdImage;
+            downloadBtn.href = hdImage;
+
+            scale = 1;
+            modalImg.style.transform = "scale(1)";
+            modalImg.style.maxWidth = "100%";
+            modalImg.style.maxHeight = "100%";
         });
 
         document.getElementById("closeModal").onclick = () => {
             modal.classList.add("hidden");
         };
-
 
         imgWrapper.addEventListener("wheel", (e) => {
             e.preventDefault();
@@ -447,6 +449,7 @@ if (isset($_POST["forgot_email_submit"])) {
 
             const searchInput = document.querySelector('input[name="search"]');
             const filterSelect = document.querySelector('select[name="filter"]');
+            const p_btn = document.getElementById("pagination");
 
             const search = searchInput ? searchInput.value.trim() : "";
             const filter = filterSelect ? filterSelect.value : "";
@@ -458,6 +461,7 @@ if (isset($_POST["forgot_email_submit"])) {
 
             loader.classList.remove("hidden");
             grid.classList.add("hidden");
+            p_btn.classList.add("hidden");
 
             fetch(`fetch_images.php?search=${encodeURIComponent(search)}&page=${page}&filter=${encodeURIComponent(filter)}`)
                 .then(res => res.text())
@@ -472,6 +476,7 @@ if (isset($_POST["forgot_email_submit"])) {
                 .finally(() => {
                     loader.classList.add("hidden");
                     grid.classList.remove("hidden");
+                    p_btn.classList.remove("hidden");
                 });
         }
 
