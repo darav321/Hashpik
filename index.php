@@ -1,24 +1,23 @@
-<?php 
-    session_start(); 
-    if (isset($_POST["forgot_email_submit"])) {
-        require_once "database.php";
-        $email = $_POST["forgot_email"];
+<?php
+session_start();
+if (isset($_POST["forgot_email_submit"])) {
+    require_once "database.php";
+    $email = $_POST["forgot_email"];
 
-        $sql = "SELECT * FROM users WHERE email='$email'";
-        $result = mysqli_query($conn, $sql);
-        $user = mysqli_fetch_assoc($result);
+    $sql = "SELECT * FROM users WHERE email='$email'";
+    $result = mysqli_query($conn, $sql);
+    $user = mysqli_fetch_assoc($result);
 
-        if ($user) {
-            require 'sendMail.php';
-            $subject = "Reset Pssword Link - Hashpik";
-            $link = "https://localhost/Hashpik/reset_password.php?email=" . urlencode($email);
-            $message = "Click on the link below to reset your password" . "\n" . $link;
-            sendEmail($email, $subject, $message);
-
-        } else {
-            echo "<div class='text-red-600 font-bold'>Email not found</div>";
-        }
+    if ($user) {
+        require 'sendMail.php';
+        $subject = "Reset Pssword Link - Hashpik";
+        $link = "https://localhost/Hashpik/reset_password.php?email=" . urlencode($email);
+        $message = "Click on the link below to reset your password" . "\n" . $link;
+        sendEmail($email, $subject, $message);
+    } else {
+        echo "<div class='text-red-600 font-bold'>Email not found</div>";
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -157,11 +156,11 @@
         <h1 class="text-3xl text-slate-800 font-bold">hash<span class="text-orange-500">pik</span></h1>
         <ul class="flex gap-8 items-center">
             <?php
-                if (isset($_SESSION['user'])) {
-                    echo '<li><a href="logout.php" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Logout</a></li>';
-                } else {
-                    echo '<li><p id="login-btn" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Login</p></li>';
-                }
+            if (isset($_SESSION['user'])) {
+                echo '<li><a href="logout.php" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Logout</a></li>';
+            } else {
+                echo '<li><p id="login-btn" class="text-xl font-medium text-slate-600 cursor-pointer hover:text-slate-900">Login</p></li>';
+            }
             ?>
         </ul>
     </header>
@@ -192,7 +191,7 @@
         </p>
 
 
-        <form id="searchForm" action="index.php" method="GET" onsubmit="return checkLoginBeforeSearch()" class="flex w-full max-w-xl z-10">
+        <form id="searchForm" class="flex w-full max-w-xl z-10">
             <input
                 type="text"
                 name="search"
@@ -266,145 +265,58 @@
 
     </div>
     <div id="forgotForm" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 flex justify-center items-center z-10">
-            <form method="post" action="index.php" class="bg-white px-10 py-8 rounded-lg shadow-lg w-lg flex flex-col gap-4">
-                <div>
-                    <h2 class="text-xl font-bold">Reset Password</h2>
-                    <p class="font-medium text-slate-500 text-sm">A verification mail will be sent to this Email</p>
-                </div>
-                <input type="email" name="forgot_email" placeholder="Enter your email" class="border-2 px-3 py-2 rounded">
-                <button type="submit" name="forgot_email_submit" class="bg-[#CC774A] text-white py-2 rounded">Send Reset Link</button>
-                <p id="closeBtn" class="cursor-pointer text-red-500 underline text-center">Cancel</p>
-            </form>
-        </div>
+        <form method="post" action="index.php" class="bg-white px-10 py-8 rounded-lg shadow-lg w-lg flex flex-col gap-4">
+            <div>
+                <h2 class="text-xl font-bold">Reset Password</h2>
+                <p class="font-medium text-slate-500 text-sm">A verification mail will be sent to this Email</p>
+            </div>
+            <input type="email" name="forgot_email" placeholder="Enter your email" class="border-2 px-3 py-2 rounded">
+            <button type="submit" name="forgot_email_submit" class="bg-[#CC774A] text-white py-2 rounded">Send Reset Link</button>
+            <p id="closeBtn" class="cursor-pointer text-red-500 underline text-center">Cancel</p>
+        </form>
+    </div>
 
-    <form method="GET" class="flex gap-4 px-10 mt-6">
+    <form method="GET" class="w-full max-w-none flex flex-wrap gap-4 px-6 mt-6 justify-start">
         <input type="text" name="search" value="<?php echo $_GET['search'] ?? '' ?>"
             placeholder="Search..." class="border px-4 py-2 rounded">
 
         <select name="filter" class="border px-4 py-2 rounded">
             <option value="">Sort By</option>
-            <option value="az">Title A → Z</option>
-            <option value="za">Title Z → A</option>
-            <option value="likes_high">Most Liked</option>
-            <option value="likes_low">Least Liked</option>
-            <option value="width_high">Width High → Low</option>
-            <option value="width_low">Width Low → High</option>
+            <option value="az" <?= $filter == "az" ? "selected" : "" ?>>Title A → Z</option>
+            <option value="za" <?= $filter == "za" ? "selected" : "" ?>>Title Z → A</option>
+            <option value="likes_high" <?= $filter == "likes_high" ? "selected" : "" ?>>Most Liked</option>
+            <option value="likes_low" <?= $filter == "likes_low" ? "selected" : "" ?>>Least Liked</option>
+            <option value="width_high" <?= $filter == "width_high" ? "selected" : "" ?>>Width High → Low</option>
+            <option value="width_low" <?= $filter == "width_low" ? "selected" : "" ?>>Width Low → High</option>
         </select>
+
 
         <button class="bg-orange-500 text-white px-6 py-2 rounded">Apply</button>
     </form>
 
+    <section class="w-full px-4">
 
-    <?php
+        <div id="loader"
+            class="hidden w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-6 px-6 mt-10">
 
-    $allImages = [];
+            <?php for ($i = 0; $i < 12; $i++): ?>
+                <div class="h-64 bg-gray-200 animate-pulse rounded-xl"></div>
+            <?php endfor; ?>
 
-    if (isset($_GET['search'])) {
+        </div>
 
-        $query = urlencode($_GET['search']);
-        $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-        $filter = $_GET['filter'] ?? ""; 
+        <div id="imageGrid"
+            class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6 px-6 mt-10">
+        </div>
 
-        $access_key_unsplash = "CVIUtNuMDIbvCHnYTobrqSAcsEq2muf9-LvNpFH9wjE";
-        $url_unsplash = "https://api.unsplash.com/search/photos?query=$query&client_id=$access_key_unsplash&page=$page&per_page=20";
+    </section>
 
-        $response = file_get_contents($url_unsplash);
-        $data = json_decode($response, true);
 
-        if (!empty($data['results'])) {
-            foreach ($data['results'] as $img) {
-                $allImages[] = [
-                    "title"  => $img["alt_description"] ?: "",
-                    "small"  => $img["urls"]["small"],
-                    "full"   => $img["urls"]["full"],
-                    "likes"  => $img["likes"],
-                    "width"  => $img["width"],
-                    "height" => $img["height"],
-                    "source" => "unsplash"
-                ];
-            }
-        }
-        $access_key_pixabay = "53563226-9f711b527fabe9b621944ae54";
-        $url_pixabay = "https://pixabay.com/api/?key=$access_key_pixabay&q=$query&image_type=photo&page=$page&per_page=20";
 
-        $response2 = file_get_contents($url_pixabay);
-        $data2 = json_decode($response2, true);
-
-        if (!empty($data2['hits'])) {
-            foreach ($data2['hits'] as $img) {
-
-                $allImages[] = [
-                    "title"  => $img["tags"],
-                    "small"  => $img["previewURL"],
-                    "full"   => $img["largeImageURL"],
-                    "likes"  => $img["likes"],
-                    "width"  => $img["imageWidth"],
-                    "height" => $img["imageHeight"],
-                    "source" => "pixabay"
-                ];
-            }
-        }
-        if ($filter === "az") {
-            usort($allImages, fn($a, $b) => strcmp($a["title"], $b["title"]));
-        } elseif ($filter === "za") {
-            usort($allImages, fn($a, $b) => strcmp($b["title"], $a["title"]));
-        } elseif ($filter === "likes_high") {
-            usort($allImages, fn($a, $b) => $b["likes"] - $a["likes"]);
-        } elseif ($filter === "likes_low") {
-            usort($allImages, fn($a, $b) => $a["likes"] - $b["likes"]);
-        } elseif ($filter === "width_high") {
-            usort($allImages, fn($a, $b) => $b["width"] - $a["width"]);
-        } elseif ($filter === "width_low") {
-            usort($allImages, fn($a, $b) => $a["width"] - $b["width"]);
-        }
-
-        echo '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-10 px-10">';
-
-        foreach ($allImages as $img) {
-
-            $small = $img["small"];
-            $full  = $img["full"];
-            $title = htmlspecialchars($img["title"]);
-
-            echo "
-        <div class='rounded-xl overflow-hidden shadow-lg'>
-            <img src='$small'
-                 alt='$title'
-                 data-full='$full'
-                 data-source='{$img['source']}'
-                 class='w-full h-64 object-cover previewImg cursor-pointer'
-                 onclick='openImgModal(\"$full\")'>
-        </div>";
-        }
-
-        echo '</div>';
-
-        $total_pages = 10;
-        $start = max(1, $page - 2);
-        $end = min($total_pages, $page + 2);
-
-        echo '<div class="flex justify-center gap-3 my-10">';
-
-        if ($page > 1) {
-            echo '<a href="?search=' . $_GET['search'] . '&page=' . ($page - 1) . '" 
-                class="px-3 py-2 bg-gray-200 rounded">Prev</a>';
-        }
-
-        for ($i = $start; $i <= $end; $i++) {
-            if ($i == $page) {
-                echo '<span class="px-3 py-2 bg-orange-500 text-white rounded">' . $i . '</span>';
-            } else {
-                echo '<a href="?search=' . $_GET['search'] . '&page=' . $i . '" 
-                    class="px-3 py-2 bg-gray-200 rounded">' . $i . '</a>';
-            }
-        }
-
-        echo '<a href="?search=' . $_GET['search'] . '&page=' . ($page + 1) . '" 
-            class="px-3 py-2 bg-gray-200 rounded">Next</a>';
-
-        echo '</div>';
-    }
-    ?>
+    <div class="w-full flex justify-center gap-6 my-12">
+        <button onclick="prevPage()" class="px-4 py-2 bg-gray-200 rounded">Prev</button>
+        <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 rounded">Next</button>
+    </div>
 
     <div id="imgModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-[999]">
         <div class="relative bg-white p-4 rounded-lg max-w-7xl w-full h-[90vh] flex gap-4">
@@ -494,7 +406,6 @@
 
         function checkLoginBeforeSearch() {
             const isLoggedIn = "<?php echo isset($_SESSION['user']) ? '1' : '0'; ?>";
-            const forceSubmit = document.getElementById("forceSubmit").value;
 
             if (isLoggedIn === "1" || forceSubmit === "1") {
                 document.getElementById("forceSubmit").value = "0";
@@ -528,6 +439,65 @@
             document.getElementById("forgotForm").classList.add("hidden");
             document.getElementById("login-form").classList.remove("hidden");
         }
+
+        let currentPage = 1;
+
+        function loadImages(page = 1) {
+            currentPage = page;
+
+            const searchInput = document.querySelector('input[name="search"]');
+            const filterSelect = document.querySelector('select[name="filter"]');
+
+            const search = searchInput ? searchInput.value.trim() : "";
+            const filter = filterSelect ? filterSelect.value : "";
+
+            if (!search) return;
+
+            const loader = document.getElementById("loader");
+            const grid = document.getElementById("imageGrid");
+
+            loader.classList.remove("hidden");
+            grid.classList.add("hidden");
+
+            fetch(`fetch_images.php?search=${encodeURIComponent(search)}&page=${page}&filter=${encodeURIComponent(filter)}`)
+                .then(res => res.text())
+                .then(html => {
+                    grid.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    grid.innerHTML =
+                        "<p class='text-red-500 text-center col-span-full'>Failed to load images</p>";
+                })
+                .finally(() => {
+                    loader.classList.add("hidden");
+                    grid.classList.remove("hidden");
+                });
+        }
+
+
+        document.querySelector('select[name="filter"]').addEventListener("change", () => {
+            loadImages(1);
+        });
+
+        function nextPage() {
+            loadImages(currentPage + 1);
+        }
+
+        function prevPage() {
+            if (currentPage > 1) loadImages(currentPage - 1);
+        }
+
+        if (new URLSearchParams(window.location.search).get("search")) {
+            loadImages(1);
+        }
+
+        document.getElementById("searchForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (!checkLoginBeforeSearch()) return;
+
+            loadImages(1);
+        });
     </script>';
 
     <?php if (isset($_GET['registered']) && $_GET['registered'] == 1): ?>
