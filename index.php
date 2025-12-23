@@ -34,72 +34,6 @@ if (isset($_POST["forgot_email_submit"])) {
 
 <body>
     <?php
-    if (isset($_POST["register_submit"])) {
-        $name = $_POST["name"];
-        $email = $_POST["email"];
-        $password = $_POST["password"];
-        $confirm = $_POST["confirm"];
-        $errors = array();
-        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        if (empty($name) or empty($email) or empty($password) or empty($confirm)) {
-            array_push($errors, "All fields are required");
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            array_push($errors, "Email is not valid");
-        } elseif (strlen($password) < 8) {
-            array_push($errors, "Password must be at least of 8 characters long");
-        } elseif ($password !== $confirm) {
-            array_push($errors, "Password does not match");
-        }
-
-        require_once "database.php";
-        $sql = "SELECT * FROM users WHERE email = '$email'";
-        $result = mysqli_query($conn, $sql);
-        $rowCount = mysqli_num_rows($result);
-        if ($rowCount > 0) {
-            array_push($errors, "Email already exists!");
-        }
-
-        if (count($errors) > 0) {
-            foreach ($errors as $error) {
-                echo "
-                    <script>
-                        Toastify({
-                            text: '$error',
-                            duration: 3000,
-                            gravity: 'top',
-                            position: 'center',
-                            close: true,
-                            style: {
-                                background: '#16a34a',
-                                border: '2px solid #16a34a',
-                                borderRadius: '8px',
-                                fontWeight: '500',
-                                padding: '12px 16px'
-                            }
-                        }).showToast();
-                    </script>
-                    ";
-            }
-        } else {
-            $sql = "INSERT INTO users (name, email, password) VALUES ( ?, ?, ? )";
-            $stmt = mysqli_stmt_init($conn);
-            $prepareStmt = mysqli_stmt_prepare($stmt, $sql);
-            if ($prepareStmt) {
-                mysqli_stmt_bind_param($stmt, "sss", $name, $email, $passwordHash);
-                mysqli_stmt_execute($stmt);
-                require 'sendMail.php';
-                $subject = "Welcome to Hashpik";
-                $message = "Now you can get tons of images from different websites on single platform";
-                sendEmail($email, $subject, $message);
-
-                header("Location: index.php?registered=1");
-                exit();
-            } else {
-                die("Something went wrong");
-            }
-        }
-    }
-
     if (isset($_POST["forgot_email_submit"])) {
 
         $email = $_POST["forgot_email"];
@@ -118,36 +52,6 @@ if (isset($_POST["forgot_email_submit"])) {
             exit();
         } else {
             echo "<div class='text-red-600 font-bold'>Email not found</div>";
-        }
-    }
-
-    if (isset($_POST["loginsubmit"])) {
-        $email = $_POST["email"];
-        $password = $_POST["password"];
-        $errors = array();
-
-        if (empty($email) or empty($password)) {
-            array_push($errors, "All fields are required");
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            array_push($errors, "Email not valid");
-        }
-
-        $sql = "SELECT * FROM users WHERE email='$email'";
-        $result = mysqli_query($conn, $sql);
-        $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
-
-        if ($user) {
-            if (password_verify($password, $user["password"])) {
-                session_start();
-                $_SESSION["user"] = "yes";
-                header("Location: index.php?login_success=1");
-                exit;
-            } else {
-                echo "<div class='text-red-600 font-bold'>Password does not match</div>";
-            }
-        } else {
-            echo "<div class='text-red-600 font-bold'>Email does not match</div>";
         }
     }
 
@@ -212,7 +116,7 @@ if (isset($_POST["forgot_email_submit"])) {
 
     <div id="forms" class="hidden fixed top-0 left-0 w-full h-full z-10 bg-black bg-opacity-40 flex justify-center items-center">
 
-        <form autocomplete="off" action="index.php" method="POST" autocomplete="off" id="registration-form" class=" hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
+        <form autocomplete="off" id="registration-form" class=" hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
             <div class="w-full flex flex-col gap-1">
                 <h1 class="text-3xl text-slate-800 font-bold">Sign up</h1>
                 <p class="font-medium text-sm text-slate-500">All fields are required</p>
@@ -237,7 +141,7 @@ if (isset($_POST["forgot_email_submit"])) {
             <p class="w-full text-left">Already have an account <a id="goto-login" class="text-[#CC774A]">Login</a></p>
         </form>
 
-        <form autocomplete="off" id="login-form" method="post" action="login_handler.php" class="hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
+        <form autocomplete="off" id="login-form" class="hidden flex bg-[#f5f0ed] z-10 flex-col items-center px-10 py-10 w-[90%] sm:w-1/2 lg:w-1/3 shadow-lg gap-4 rounded-lg">
 
             <div class="w-full flex flex-col gap-1">
                 <h1 class="text-3xl text-slate-800 font-bold">Sign in</h1>
@@ -313,7 +217,7 @@ if (isset($_POST["forgot_email_submit"])) {
 
 
 
-    <div id="pagination" class="w-full flex justify-center gap-6 my-12">
+    <div id="pagination" class="w-full flex justify-center gap-6 my-12 hidden">
         <button onclick="prevPage()" class="px-4 py-2 bg-gray-200 rounded">Prev</button>
         <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 rounded">Next</button>
     </div>
@@ -363,6 +267,121 @@ if (isset($_POST["forgot_email_submit"])) {
             };
         }
 
+        const registerForm = document.getElementById("registration-form");
+
+        registerForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(registerForm);
+
+            fetch("register.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        data.errors.forEach(err => {
+                            Toastify({
+                                text: err,
+                                duration: 3000,
+                                gravity: "top",
+                                position: "center",
+                                style: {
+                                    background: "#dc2626",
+                                    borderRadius: "8px",
+                                    padding: "12px 16px"
+                                }
+                            }).showToast();
+                        });
+                        return;
+                    }
+
+                    Toastify({
+                        text: data.message,
+                        duration: 3000,
+                        gravity: "top",
+                        position: "center",
+                        style: {
+                            background: "#16a34a",
+                            borderRadius: "8px",
+                            padding: "12px 16px"
+                        }
+                    }).showToast();
+
+                    document.getElementById("forms").classList.add("hidden");
+                    registerForm.reset();
+
+                })
+                .catch(() => {
+                    Toastify({
+                        text: "Something went wrong",
+                        duration: 3000,
+                        gravity: "top",
+                        position: "center",
+                        style: {
+                            background: "#dc2626"
+                        }
+                    }).showToast();
+                })
+        })
+
+        const loginForm = document.getElementById("login-form");
+
+        loginForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            fetch("login.php", {
+                    method: "POST",
+                    body: new FormData(loginForm)
+                })
+                .then(res => res.json())
+                .then(data => {
+
+                    if (!data.success) {
+                        data.errors.forEach(err => {
+                            Toastify({
+                                text: err,
+                                duration: 3000,
+                                gravity: "top",
+                                position: "center",
+                                style: {
+                                    background: "#dc2626"
+                                }
+                            }).showToast();
+                        });
+                        return;
+                    }
+
+                    Toastify({
+                        text: data.message,
+                        duration: 3000,
+                        gravity: "top",
+                        position: "center",
+                        style: {
+                            background: "#16a34a"
+                        }
+                    }).showToast();
+
+                    document.getElementById("forms").classList.add("hidden");
+                    loginForm.reset();
+
+                    window.isLoggedIn = true;
+                })
+                .catch(() => {
+                    Toastify({
+                        text: "Something went wrong",
+                        duration: 3000,
+                        gravity: "top",
+                        position: "center",
+                        style: {
+                            background: "#dc2626"
+                        }
+                    }).showToast();
+                });
+        });
+
+
         const gotoLogin = document.getElementById("goto-login");
         if (gotoLogin) {
             gotoLogin.onclick = () => {
@@ -376,7 +395,7 @@ if (isset($_POST["forgot_email_submit"])) {
         const downloadBtn = document.getElementById("downloadBtn");
         let scale = 1;
 
-        document.addEventListener("click", function (e) {
+        document.addEventListener("click", function(e) {
             const img = e.target.closest(".previewImg");
             if (!img) return;
 
@@ -405,25 +424,15 @@ if (isset($_POST["forgot_email_submit"])) {
             modalImg.style.transform = `scale(${scale})`;
         });
 
+        window.isLoggedIn = "<?php echo isset($_SESSION['user']) ? '1' : '0'; ?>";
 
         function checkLoginBeforeSearch() {
-            const isLoggedIn = "<?php echo isset($_SESSION['user']) ? '1' : '0'; ?>";
-
-            if (isLoggedIn === "1" || forceSubmit === "1") {
-                document.getElementById("forceSubmit").value = "0";
+            if (window.isLoggedIn === true || window.isLoggedIn === "1") {
                 return true;
             }
 
-            const forms = document.getElementById("forms");
-            const login = document.getElementById("login-form");
-            if (forms) forms.classList.remove("hidden");
-            if (login) login.classList.remove("hidden");
-
-            const term = document.getElementById("searchInput").value;
-            if (term && term.trim() !== "") {
-                fetch("save_search.php?term=" + encodeURIComponent(term)).catch(() => {});
-            }
-
+            document.getElementById("forms").classList.remove("hidden");
+            document.getElementById("login-form").classList.remove("hidden");
             return false;
         }
 
