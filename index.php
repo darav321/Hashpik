@@ -217,10 +217,7 @@ if (isset($_POST["forgot_email_submit"])) {
 
 
 
-    <div id="pagination" class="w-full flex justify-center gap-6 my-12 hidden">
-        <button onclick="prevPage()" class="px-4 py-2 bg-gray-200 rounded">Prev</button>
-        <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 rounded">Next</button>
-    </div>
+    
 
     <div id="imgModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-[999]">
         <div class="relative bg-white p-4 rounded-lg max-w-7xl w-full h-[90vh] flex gap-4">
@@ -330,6 +327,7 @@ if (isset($_POST["forgot_email_submit"])) {
 
         loginForm.addEventListener("submit", function(e) {
             e.preventDefault();
+            console.log("hello");
 
             fetch("login.php", {
                     method: "POST",
@@ -453,54 +451,45 @@ if (isset($_POST["forgot_email_submit"])) {
 
         let currentPage = 1;
 
-        function loadImages(page = 1) {
-            currentPage = page;
+function loadImages(page = 1) {
+    currentPage = page;
 
-            const searchInput = document.querySelector('input[name="search"]');
-            const filterSelect = document.querySelector('select[name="filter"]');
-            const p_btn = document.getElementById("pagination");
+    const searchInput = document.querySelector('input[name="search"]');
+    const filterSelect = document.querySelector('select[name="filter"]');
 
-            const search = searchInput ? searchInput.value.trim() : "";
-            const filter = filterSelect ? filterSelect.value : "";
+    const search = searchInput ? searchInput.value.trim() : "";
+    const filter = filterSelect ? filterSelect.value : "";
 
-            if (!search) return;
+    if (!search) return;
 
-            const loader = document.getElementById("loader");
-            const grid = document.getElementById("imageGrid");
+    const loader = document.getElementById("loader");
+    const grid = document.getElementById("imageGrid");
 
-            loader.classList.remove("hidden");
-            grid.classList.add("hidden");
-            p_btn.classList.add("hidden");
+    loader.classList.remove("hidden");
+    grid.classList.add("hidden");
 
-            fetch(`fetch_images.php?search=${encodeURIComponent(search)}&page=${page}&filter=${encodeURIComponent(filter)}`)
-                .then(res => res.text())
-                .then(html => {
-                    grid.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error(err);
-                    grid.innerHTML =
-                        "<p class='text-red-500 text-center col-span-full'>Failed to load images</p>";
-                })
-                .finally(() => {
-                    loader.classList.add("hidden");
-                    grid.classList.remove("hidden");
-                    p_btn.classList.remove("hidden");
-                });
-        }
+    fetch(`fetch_images.php?search=${encodeURIComponent(search)}&page=${page}&filter=${encodeURIComponent(filter)}`)
+        .then(res => res.text())
+        .then(html => {
+            grid.innerHTML = html;
+        })
+        .catch(() => {
+            grid.innerHTML =
+                "<p class='text-red-500 text-center col-span-full'>Failed to load images</p>";
+        })
+        .finally(() => {
+            loader.classList.add("hidden");
+            grid.classList.remove("hidden");
+        });
+}
+
 
 
         document.querySelector('select[name="filter"]').addEventListener("change", () => {
             loadImages(1);
         });
 
-        function nextPage() {
-            loadImages(currentPage + 1);
-        }
-
-        function prevPage() {
-            if (currentPage > 1) loadImages(currentPage - 1);
-        }
+        
 
         if (new URLSearchParams(window.location.search).get("search")) {
             loadImages(1);

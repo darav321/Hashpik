@@ -1,7 +1,7 @@
 <?php 
-    $host = "localhost";
-    $user = "root";
-    $pass = "";
+    $host = "db";
+    $user = "hashpik_user";
+    $pass = "hashpik_pass";
     $dbname = "hashpik";
 
     $conn = mysqli_connect($host, $user, $pass, $dbname);
